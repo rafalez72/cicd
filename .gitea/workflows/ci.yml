@@ -62,9 +62,11 @@ jobs:
       # 6) DEPLOY: despliega en el "entorno de entrega". Baja la imagen desde DockerHub
       #    (demuestra el circuito completo registry -> entorno) y la corre en el puerto
       #    8081. Antes elimina el contenedor viejo para reemplazarlo por la nueva versión.
+      #    Se fuerza --platform linux/amd64 en el pull porque el runner corre en Mac ARM
+      #    y sin el flag Docker intenta bajar la variante arm64 (que no existe en el registro).
       - name: Deploy — desplegar en entorno de entrega (:8081)
         run: |
-          docker pull $IMAGE:latest
+          docker pull --platform linux/amd64 $IMAGE:latest
           docker rm -f demo-ci-prod || true
           docker run -d --name demo-ci-prod \
             -p 8081:3000 \
