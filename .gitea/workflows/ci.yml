@@ -1,0 +1,29 @@
+# Pipeline de Integración y Entrega Continua (sintaxis GitHub Actions).
+# Lo ejecuta el runner de Gitea Actions ante cada push a main.
+name: CI-CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (control de versiones)
+        uses: actions/checkout@v4
+
+      - name: Build — construir imagen
+        run: docker build -t demo-ci:${{ github.run_number }} -t demo-ci:latest .
+
+      - name: Test — pruebas automatizadas
+        run: docker run --rm demo-ci:latest node --test test/
+
+      - name: Deploy — desplegar en entorno de entrega (:8081)
+        run: |
+          docker rm -f demo-ci-prod || true
+          docker run -d --name demo-ci-prod \
+            -p 8081:3000 \
+            -e APP_VERSION=${{ github.run_number }} \
+            demo-ci:latest
+          echo "✅ App desplegada en http://localhost:8081"
