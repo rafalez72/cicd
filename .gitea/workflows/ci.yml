@@ -69,3 +69,16 @@ jobs:
             -e APP_VERSION=${{ github.run_number }} \
             $IMAGE:latest
           echo "✅ Imagen publicada en DockerHub y app desplegada en http://localhost:8081"
+
+      # 7) DEPLOY A LA WEB: avisa a Render (PaaS) que hay imagen nueva en DockerHub.
+      #    Render baja rafalez72/utn-cicd:latest y la republica en una URL pública.
+      #    Esto es el despliegue continuo al "entorno de entrega" en la web.
+      #    El paso NO rompe el pipeline si todavía no cargaste el secret RENDER_DEPLOY_HOOK.
+      - name: Deploy a la web (Render)
+        run: |
+          if [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
+            curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+            echo "🌐 Deploy en la web disparado (Render)"
+          else
+            echo "ℹ️  Falta el secret RENDER_DEPLOY_HOOK -> deploy web no configurado todavía"
+          fi
