@@ -38,8 +38,10 @@ jobs:
       # 2) BUILD: construye la imagen Docker. Le ponemos dos etiquetas:
       #    - una con el número de build (versión trazable: 1, 2, 3...)
       #    - "latest" (la más reciente)
-      - name: Build — construir imagen
-        run: docker build -t $IMAGE:${{ github.run_number }} -t $IMAGE:latest .
+      # Forzamos linux/amd64: el runner corre en Mac ARM, pero la nube (Render)
+      # y la mayoría de los servidores usan amd64. Sin esto la imagen no arranca allá.
+      - name: Build — construir imagen (linux/amd64)
+        run: docker build --platform linux/amd64 -t $IMAGE:${{ github.run_number }} -t $IMAGE:latest .
 
       # 3) TEST: corre la prueba automatizada DENTRO de la imagen recién construida.
       #    Si falla, el pipeline se detiene acá y NO se despliega nada (calidad).
