@@ -1,36 +1,65 @@
-# Pipeline de Integración y Entrega Continua (sintaxis GitHub Actions).
-# Lo ejecuta el runner de Gitea Actions ante cada push a main.
-# Etapas: Checkout -> Build -> Test -> Login -> Push (DockerHub) -> Deploy.
-name: CI-CD
+# ═══════════════════════════════════════════════════════════════════════════
+#  ci.yml — EL PIPELINE DE INTEGRACIÓN Y ENTREGA CONTINUA
+# ═══════════════════════════════════════════════════════════════════════════
+#  Está escrito en sintaxis de GitHub Actions, pero lo ejecuta el runner
+#  self-hosted de Gitea Actions (nuestro "servidor de IC", todo dockerizado).
+#  Vive DENTRO del repositorio: el pipeline es "código" y se versiona junto a la app.
+#
+#  Flujo: Checkout -> Build -> Test -> Login -> Push (DockerHub) -> Deploy
+# ───────────────────────────────────────────────────────────────────────────
 
+name: CI-CD            # nombre del workflow (aparece en la pestaña Actions)
+
+# ── CUÁNDO se dispara ──────────────────────────────────────────────────────
+# Se ejecuta automáticamente en cada "push" a la rama main. Esa automatización
+# (integrar = pushear -> se valida solo) es el corazón de la Integración Continua.
 on:
   push:
     branches: [main]
 
+# ── QUÉ hace ───────────────────────────────────────────────────────────────
 jobs:
   build-test-deploy:
+    # "runs-on" elige el tipo de máquina. La etiqueta ubuntu-latest está mapeada
+    # (en runner/config.yaml) a una imagen Docker que ya trae Docker CLI + Node.
     runs-on: ubuntu-latest
+
+    # Variables del job. Los "secrets" (usuario/token de DockerHub) se cargan en
+    # Gitea y NUNCA se escriben en el código -> buena práctica de seguridad.
     env:
-      # La imagen se publica como  <tu-usuario-dockerhub>/utn-cicd
+      # Imagen final publicada como  <tu-usuario-dockerhub>/utn-cicd
       IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
+
     steps:
+      # 1) CHECKOUT: trae el código del repositorio (control de versiones) al runner.
       - name: Checkout (control de versiones)
         uses: actions/checkout@v4
 
+      # 2) BUILD: construye la imagen Docker. Le ponemos dos etiquetas:
+      #    - una con el número de build (versión trazable: 1, 2, 3...)
+      #    - "latest" (la más reciente)
       - name: Build — construir imagen
         run: docker build -t $IMAGE:${{ github.run_number }} -t $IMAGE:latest .
 
+      # 3) TEST: corre la prueba automatizada DENTRO de la imagen recién construida.
+      #    Si falla, el pipeline se detiene acá y NO se despliega nada (calidad).
       - name: Test — pruebas automatizadas
         run: docker run --rm $IMAGE:latest node --test test/
 
+      # 4) LOGIN: autentica contra DockerHub usando los secrets (sin exponer el token).
       - name: Login a DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
+      # 5) PUSH: publica la imagen ya probada en DockerHub (el "registry" / repositorio
+      #    de artefactos). Desde ahí cualquier entorno puede descargarla.
       - name: Push — publicar imagen en DockerHub
         run: |
           docker push $IMAGE:${{ github.run_number }}
           docker push $IMAGE:latest
 
+      # 6) DEPLOY: despliega en el "entorno de entrega". Baja la imagen desde DockerHub
+      #    (demuestra el circuito completo registry -> entorno) y la corre en el puerto
+      #    8081. Antes elimina el contenedor viejo para reemplazarlo por la nueva versión.
       - name: Deploy — desplegar en entorno de entrega (:8081)
         run: |
           docker pull $IMAGE:latest
