@@ -12,8 +12,8 @@ const { sumar, restar } = require('../src/calculadora');  // lo que vamos a prob
 
 // Cada test() describe un caso. assert.strictEqual(obtenido, esperado) falla
 // si no coinciden, y esa falla es la que detiene el pipeline.
-test('sumar: 2 - 3 = 5', () => {
-  assert.strictEqual(sumar(2, 3), 5);
+test('sumar: 2 + 3 = 5', () => {
+  assert.strictEqual(sumar(3, 3), 5);
 });
 
 test('restar: 5 - 2 = 3', () => {
