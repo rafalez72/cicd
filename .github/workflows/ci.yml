@@ -1,14 +1,5 @@
-# ═══════════════════════════════════════════════════════════════════════════
-#  ci.yml — PIPELINE DE IC/EC para GitHub Actions
-# ═══════════════════════════════════════════════════════════════════════════
-#  Misma idea que el de Gitea, pero corre en los runners CLOUD de GitHub.
-#  Esos runners ya son linux/amd64 y traen Docker, así que no hay que emular.
+
 #  Flujo: Checkout -> Build -> Test -> Login -> Push (DockerHub) -> Deploy web (Render)
-#
-#  El "deploy local :8081" se omite a propósito: el runner de GitHub es efímero
-#  (se destruye al terminar el job), así que un contenedor local no tendría sentido.
-#  El entorno de entrega real es la app pública en Render.
-# ───────────────────────────────────────────────────────────────────────────
 name: CI-CD
 
 on:
@@ -17,7 +8,7 @@ on:
 
 jobs:
   build-test-deploy:
-    runs-on: ubuntu-latest          # runner cloud de GitHub (amd64, con Docker)
+    runs-on: ubuntu-latest          # runner cloud de GitHub 
     env:
       IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
 
