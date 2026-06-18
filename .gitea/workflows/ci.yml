@@ -11,35 +11,25 @@ on:
 # ── QUÉ hace ───────────────────────────────────────────────────────────────
 jobs:
   build-test-deploy:
-    # "runs-on" elige el tipo de máquina. La etiqueta ubuntu-latest está mapeada
-    # (en runner/config.yaml) a una imagen Docker que ya trae Docker CLI + Node.
+    # "runs-on" elige el tipo de máquina. 
     runs-on: ubuntu-latest
-
-    # Variables del job. Los "secrets" (usuario/token de DockerHub) se cargan en
-    # Gitea y NUNCA se escriben en el código -> buena práctica de seguridad.
     env:
       # Imagen final publicada como  <tu-usuario-dockerhub>/utn-cicd
       IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
-
     steps:
       # 1) CHECKOUT: trae el código del repositorio (control de versiones) al runner.
       - name: Checkout (control de versiones)
         uses: actions/checkout@v4
 
-      # 2) BUILD: construye la imagen Docker. Le ponemos dos etiquetas:
-      #    - una con el número de build (versión trazable: 1, 2, 3...)
-      #    - "latest" (la más reciente)
-      # Forzamos linux/amd64: el runner corre en Mac ARM, pero la nube (Render)
-      # y la mayoría de los servidores usan amd64. Sin esto la imagen no arranca allá.
-      - name: Build — construir imagen (linux/amd64)
+      # 2) BUILD: construye la imagen Docker. 
+      - name: Build — construir imagen (linux/amd64) #Por render que no deja ARM
         run: docker build --platform linux/amd64 -t $IMAGE:${{ github.run_number }} -t $IMAGE:latest .
 
-      # 3) TEST: corre la prueba automatizada DENTRO de la imagen recién construida.
-      #    Si falla, el pipeline se detiene acá y NO se despliega nada (calidad).
+      # 3) TEST: corre la prueba automatizada DENTRO de la imagen recién construida. Si falla el pipeline de detiene
       - name: Test — pruebas automatizadas
         run: docker run --rm $IMAGE:latest node --test test/
 
-      # 4) LOGIN: autentica contra DockerHub usando los secrets (sin exponer el token).
+      # 4) LOGIN: autentica contra DockerHub usando los secrets .
       - name: Login a DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
