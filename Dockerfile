@@ -1,6 +1,7 @@
 
+#FROM node:20-alpine
 
-FROM node:200-alpine
+FROM node:20-alpine
 
 # Carpeta de trabajo dentro del contenedor.
 WORKDIR /app
