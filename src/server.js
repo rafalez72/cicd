@@ -31,7 +31,7 @@ const server = http.createServer((req, res) => {
   // Cualquier otra ruta devuelve una página HTML simple de bienvenida.
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(`<!doctype html>
-    <h1>Demo CI/CD — UTN Resistencia</h1>
+    <h1>Demo CI/CD — UTN Resistencia AGREGAMOS PARA EL PROFE PARCIAL</h1>
     <p>App desplegada .</p>
     <p>Versión (build): <b>${VERSION}</b></p>
     <p>Probar la API: <a href="/sumar?a=2&b=3">/sumar?a=2&b=3</a></p>`);
