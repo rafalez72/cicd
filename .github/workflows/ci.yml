@@ -13,11 +13,36 @@ jobs:
       IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
 
     steps:
-      # 1) Trae el código del repo al runner.
+      # NOTIFICAR INICIO a Telegram: avisa que arrancó la ejecución del pipeline.
+      #    No rompe el pipeline si faltan los secrets de Telegram.
+      - name: Notificar inicio a Telegram
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          RUNID: ${{ github.run_id }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
+            echo "ℹ️  Faltan TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID -> notificación no enviada"
+            exit 0
+          fi
+          MSG=$(printf '%s\n%s\n%s\n%s' \
+            "🚀 CI/CD utn-cicd: arrancó la ejecución" \
+            "por: $ACTOR" \
+            "commit: $(echo "$SHA" | cut -c1-7)" \
+            "run: https://github.com/$REPO/actions/runs/$RUNID")
+          curl -fsS -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
+            --data-urlencode "chat_id=$TG_CHAT" \
+            --data-urlencode "text=$MSG"
+          echo "📨 Notificación de inicio enviada a Telegram"
+
+      #trae el codigo del repo al runner.
       - name: Checkout (control de versiones)
         uses: actions/checkout@v4
 
-      # 2) Construye la imagen Docker (dos tags: nº de build y latest).
+      #Construye la imagen Docker (dos tags: nº de build y latest).
       - name: Build — construir imagen
         run: docker build -t $IMAGE:${{ github.run_number }} -t $IMAGE:latest .
 
