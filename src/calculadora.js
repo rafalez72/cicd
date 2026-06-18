@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────
-//  calculadora.js — LÓGICA DE NEGOCIO (es lo que la prueba automatizada verifica)
-// ─────────────────────────────────────────────────────────────────────────
 
 
 // Suma dos números. La usa el servidor web (server.js) y la prueba (test/).

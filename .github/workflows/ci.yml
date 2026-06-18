@@ -1,5 +1,4 @@
 
-#  Flujo: Checkout -> Build -> Test -> Login -> Push (DockerHub) -> Deploy web (Render)
 name: CI-CD
 
 on:

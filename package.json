@@ -1,7 +1,7 @@
 {
   "name": "demo-ci",
   "version": "1.0.0",
-  "description": "Ejemplo simple para demo de Integración Continua - UTN Resistencia",
+  "description": "ci-cd",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
