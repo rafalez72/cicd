@@ -17,7 +17,7 @@ jobs:
       IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
 
     steps:
-      # Notificamos el inicio.
+      # Notifica mos el inicio.
       - name: Notificar inicio a Telegram
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
