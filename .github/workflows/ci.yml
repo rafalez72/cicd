@@ -49,3 +49,31 @@ jobs:
         run: |
           curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
           echo "🌐 Deploy en la web disparado (Render) -> https://utn-cicd-latest.onrender.com"
+
+      # 7) NOTIFICAR A TELEGRAM: avisa al equipo si el pipeline terminó OK o falló.
+      #    `if: always()` -> corre aunque una etapa anterior haya fallado, y usa
+      #    job.status para saber el resultado final. Es el "mecanismo de feedback".
+      #    No rompe el pipeline si faltan los secrets de Telegram.
+      - name: Notificar a Telegram
+        if: always()
+        env:
+          TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TG_CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
+          STATUS: ${{ job.status }}
+          SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
+          RUNID: ${{ github.run_id }}
+        run: |
+          if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
+            echo "ℹ️  Faltan TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID -> notificación no enviada"
+            exit 0
+          fi
+          if [ "$STATUS" = "success" ]; then ICON="✅"; WORD="se subió OK"; else ICON="❌"; WORD="FALLÓ"; fi
+          MSG=$(printf '%s\n%s\n%s' \
+            "$ICON CI/CD utn-cicd: $WORD" \
+            "commit: $(echo "$SHA" | cut -c1-7)" \
+            "run: https://github.com/$REPO/actions/runs/$RUNID")
+          curl -fsS -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
+            --data-urlencode "chat_id=$TG_CHAT" \
+            --data-urlencode "text=$MSG"
+          echo "📨 Notificación enviada a Telegram"
