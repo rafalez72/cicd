@@ -14,7 +14,7 @@ jobs:
 
     steps:
       # NOTIFICAR INICIO a Telegram: avisa que arrancó la ejecución del pipeline.
-      #    No rompe el pipeline si faltan los secrets de Telegram.
+      #    No rompe el pipeline si faltan los  secrets de Telegram.
       - name: Notificar inicio a Telegram
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
