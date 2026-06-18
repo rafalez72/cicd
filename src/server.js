@@ -12,8 +12,8 @@ const { sumar } = require('./calculadora');   // importa la lógica de negocio
 // El puerto y la versión se leen de variables de entorno.
 // APP_VERSION la inyecta el pipeline (número de build) -> así vemos en pantalla
 // qué versión quedó desplegada y comprobamos que el deploy automático funcionó.
-const PORT = process.env.PORT || 3000;
-const VERSION = process.env.APP_VERSION || 'dev';
+const PORT =  3000;
+const VERSION =  'dev';
 
 // Cada vez que llega un pedido HTTP se ejecuta esta función.
 const server = http.createServer((req, res) => {
