@@ -6,9 +6,14 @@ on:
   push:
     branches: [main]
 
+# Permiso para que el GITHUB_TOKEN pueda leer los jobs/steps del run (saber cuál falló).
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   build-test-deploy:
-    runs-on: ubuntu-latest          # runner cloud de GitHub 
+    runs-on: ubuntu-latest          # runner cloud de GitHub
     env:
       IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
 
@@ -79,15 +84,29 @@ jobs:
           SHA: ${{ github.sha }}
           REPO: ${{ github.repository }}
           RUNID: ${{ github.run_id }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT" ]; then
             echo "ℹ️  Faltan TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID -> notificación no enviada"
             exit 0
           fi
-          if [ "$STATUS" = "success" ]; then ICON="✅"; WORD="se subió OK"; else ICON="❌"; WORD="FALLÓ"; fi
-          MSG=$(printf '%s\n%s\n%s' \
+          REASON=""
+          if [ "$STATUS" = "success" ]; then
+            ICON="✅"; WORD="se subió OK"
+          else
+            ICON="❌"; WORD="FALLÓ"
+            # Averigua QUÉ step falló consultando la API de Actions de este run.
+            FAILED=$(curl -fsS \
+              -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$REPO/actions/runs/$RUNID/jobs" \
+              | jq -r '[.jobs[].steps[] | select(.conclusion=="failure") | .name] | first // empty')
+            [ -n "$FAILED" ] && REASON=$(printf '\nfalló en: %s' "$FAILED")
+          fi
+          MSG=$(printf '%s\n%s%s\n%s' \
             "$ICON CI/CD utn-cicd: $WORD" \
             "commit: $(echo "$SHA" | cut -c1-7)" \
+            "$REASON" \
             "run: https://github.com/$REPO/actions/runs/$RUNID")
           curl -fsS -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
             --data-urlencode "chat_id=$TG_CHAT" \

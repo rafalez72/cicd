@@ -1,7 +1,6 @@
 
 
-# Imagen base: Node 20 Trae node + npm.
-FROM node:20-alpine
+FROM node:200-alpine
 
 # Carpeta de trabajo dentro del contenedor.
 WORKDIR /app
