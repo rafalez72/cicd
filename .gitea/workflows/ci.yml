@@ -1,12 +1,3 @@
-# ═══════════════════════════════════════════════════════════════════════════
-#  ci.yml — EL PIPELINE DE INTEGRACIÓN Y ENTREGA CONTINUA
-# ═══════════════════════════════════════════════════════════════════════════
-#  Está escrito en sintaxis de GitHub Actions, pero lo ejecuta el runner
-#  self-hosted de Gitea Actions (nuestro "servidor de IC", todo dockerizado).
-#  Vive DENTRO del repositorio: el pipeline es "código" y se versiona junto a la app.
-#
-#  Flujo: Checkout -> Build -> Test -> Login -> Push (DockerHub) -> Deploy
-# ───────────────────────────────────────────────────────────────────────────
 
 name: CI-CD            # nombre del workflow (aparece en la pestaña Actions)
 

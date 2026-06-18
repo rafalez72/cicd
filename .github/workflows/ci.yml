@@ -1,0 +1,51 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  ci.yml — PIPELINE DE IC/EC para GitHub Actions
+# ═══════════════════════════════════════════════════════════════════════════
+#  Misma idea que el de Gitea, pero corre en los runners CLOUD de GitHub.
+#  Esos runners ya son linux/amd64 y traen Docker, así que no hay que emular.
+#  Flujo: Checkout -> Build -> Test -> Login -> Push (DockerHub) -> Deploy web (Render)
+#
+#  El "deploy local :8081" se omite a propósito: el runner de GitHub es efímero
+#  (se destruye al terminar el job), así que un contenedor local no tendría sentido.
+#  El entorno de entrega real es la app pública en Render.
+# ───────────────────────────────────────────────────────────────────────────
+name: CI-CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest          # runner cloud de GitHub (amd64, con Docker)
+    env:
+      IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
+
+    steps:
+      # 1) Trae el código del repo al runner.
+      - name: Checkout (control de versiones)
+        uses: actions/checkout@v4
+
+      # 2) Construye la imagen Docker (dos tags: nº de build y latest).
+      - name: Build — construir imagen
+        run: docker build -t $IMAGE:${{ github.run_number }} -t $IMAGE:latest .
+
+      # 3) Prueba automatizada dentro de la imagen. Si falla, se corta acá y NO despliega.
+      - name: Test — pruebas automatizadas
+        run: docker run --rm $IMAGE:latest node --test test/
+
+      # 4) Login a DockerHub usando los secrets del repo (Settings -> Secrets and variables -> Actions).
+      - name: Login a DockerHub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      # 5) Publica la imagen ya probada en DockerHub (registry).
+      - name: Push — publicar imagen en DockerHub
+        run: |
+          docker push $IMAGE:${{ github.run_number }}
+          docker push $IMAGE:latest
+
+      # 6) Despliegue continuo a la web: avisa a Render que hay imagen nueva.
+      - name: Deploy a la web (Render)
+        run: |
+          curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
+          echo "🌐 Deploy en la web disparado (Render) -> https://utn-cicd-latest.onrender.com"

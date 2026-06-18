@@ -1,10 +1,6 @@
-# ───────────────────────────────────────────────────────────────────────────
-#  Dockerfile — receta para EMPAQUETAR la app en una imagen de contenedor.
-#  La misma imagen se usa para testear, se publica en DockerHub y se despliega.
-#  Esto garantiza que "lo que se probó" es EXACTAMENTE "lo que se despliega".
-# ───────────────────────────────────────────────────────────────────────────
 
-# Imagen base: Node 20 sobre Alpine (Linux muy liviano). Trae node + npm.
+
+# Imagen base: Node 20 Trae node + npm.
 FROM node:20-alpine
 
 # Carpeta de trabajo dentro del contenedor.

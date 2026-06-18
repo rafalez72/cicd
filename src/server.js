@@ -20,7 +20,6 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
   // Endpoint de API: /sumar?a=2&b=3  ->  {"a":2,"b":3,"resultado":5}
-  // Sirve para demostrar que la lógica testeada también funciona "en vivo".
   if (url.pathname === '/sumar') {
     const a = Number(url.searchParams.get('a'));
     const b = Number(url.searchParams.get('b'));
