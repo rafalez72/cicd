@@ -5,7 +5,7 @@ const assert = require('node:assert');
 const { sumar, restar } = require('../src/calculadora'); 
 
 
-// si no coinciden, y esa falla es la que salta la alarma
+//prueba si no coinciden, y esa falla es la que salta la alarma
 test('sumar: 2 + 3 = 5', () => {
   assert.strictEqual(sumar(2, 3), 5);
 });
