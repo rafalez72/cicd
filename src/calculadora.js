@@ -10,7 +10,7 @@ function sumar(a, b) {
 
 // Resta dos números.
 function restar(a, b) {
-  return a - b;
+  return a + b;
 }
 
 module.exports = { sumar, restar };
