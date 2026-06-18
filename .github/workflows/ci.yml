@@ -17,8 +17,7 @@ jobs:
       IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
 
     steps:
-      # NOTIFICAR INICIO a Telegram: avisa que arrancó la ejecución del pipeline.
-      #    No rompe el pipeline si faltan los  secrets de Telegram.
+      # Notificamos el inicio.
       - name: Notificar inicio a Telegram
         env:
           TG_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -33,47 +32,43 @@ jobs:
             exit 0
           fi
           MSG=$(printf '%s\n%s\n%s\n%s' \
-            "🚀 CI/CD utn-cicd: arrancó la ejecución" \
+            "arrancó la ejecución" \
             "por: $ACTOR" \
             "commit: $(echo "$SHA" | cut -c1-7)" \
             "run: https://github.com/$REPO/actions/runs/$RUNID")
           curl -fsS -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
             --data-urlencode "chat_id=$TG_CHAT" \
             --data-urlencode "text=$MSG"
-          echo "📨 Notificación de inicio enviada a Telegram"
+          echo "Inicio enviada a Telegram"
 
-      #trae el codigo del repo al runner.
+      #reutilizamos un codigo/funcion de git
       - name: Checkout (control de versiones)
         uses: actions/checkout@v4
 
-      #Construye la imagen Docker (dos tags: nº de build y latest).
+      
       - name: Build — construir imagen
         run: docker build -t $IMAGE:${{ github.run_number }} -t $IMAGE:latest .
 
-      # 3) Prueba automatizada dentro de la imagen. Si falla, se corta acá y NO despliega.
       - name: Test — pruebas automatizadas
         run: docker run --rm $IMAGE:latest node --test test/
 
-      # 4) Login a DockerHub usando los secrets del repo (Settings -> Secrets and variables -> Actions).
+      # login dockerhub
       - name: Login a DockerHub
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      # 5) Publica la imagen ya probada en DockerHub (registry).
+      
       - name: Push — publicar imagen en DockerHub
         run: |
           docker push $IMAGE:${{ github.run_number }}
           docker push $IMAGE:latest
 
-      # 6) Despliegue continuo a la web: avisa a Render que hay imagen nueva.
+      # aviso a render
       - name: Deploy a la web (Render)
         run: |
           curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
           echo "🌐 Deploy en la web disparado (Render) -> https://utn-cicd-latest.onrender.com"
 
-      # 7) NOTIFICAR A TELEGRAM: avisa al equipo si el pipeline terminó OK o falló.
-      #    `if: always()` -> corre aunque una etapa anterior haya fallado, y usa
-      #    job.status para saber el resultado final. Es el "mecanismo de feedback".
-      #    No rompe el pipeline si faltan los secrets de Telegram.
+      # notifico que termino
       - name: Notificar a Telegram
         if: always()
         env:
@@ -94,7 +89,7 @@ jobs:
             ICON="✅"; WORD="se subió OK"
           else
             ICON="❌"; WORD="FALLÓ"
-            # Averigua QUÉ step falló consultando la API de Actions de este run.
+            # miramos donde fallo
             FAILED=$(curl -fsS \
               -H "Authorization: Bearer $GH_TOKEN" \
               -H "Accept: application/vnd.github+json" \
@@ -110,4 +105,4 @@ jobs:
           curl -fsS -X POST "https://api.telegram.org/bot$TG_TOKEN/sendMessage" \
             --data-urlencode "chat_id=$TG_CHAT" \
             --data-urlencode "text=$MSG"
-          echo "📨 Notificación enviada a Telegram"
+          echo "notificaicon enviada a a tg"
