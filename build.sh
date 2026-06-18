@@ -1,12 +1,12 @@
 #!/bin/sh
-# Build LOCAL del desarrollador (entorno de dev) — todo vía Docker.
+# Build LOCAL
 set -e
 
-echo "==> [1/3] Construyendo imagen de la app"
+echo "==> [1/3] construye imagen"
 docker build -t demo-ci:local .
 
-echo "==> [2/3] Ejecutando pruebas automatizadas"
+echo "==> [2/3] ejecuto pruebas"
 docker run --rm demo-ci:local node --test test/
 
-echo "==> [3/3] Build local OK"
-echo "    Para levantar la app local:  docker run --rm -p 3000:3000 demo-ci:local"
+echo "==> [3/3] build ok"
+echo "    Para levantar la app local:  docker run --rm -p 30    00:3000 demo-ci:local"

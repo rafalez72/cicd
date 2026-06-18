@@ -5,14 +5,14 @@ on:
   push:
     branches: [main]
 
-# Permiso para que el GITHUB_TOKEN pueda leer los jobs/steps del run (saber cuál falló).
+# para que pueda ver donde fall.
 permissions:
   contents: read
   actions: read
 
 jobs:
   build-test-deploy:
-    runs-on: ubuntu-latest          # runner cloud de GitHub
+    runs-on: ubuntu-latest         
     env:
       IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/utn-cicd
 
