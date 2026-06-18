@@ -32,7 +32,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
   res.end(`<!doctype html>
     <h1>Demo CI/CD — UTN Resistencia</h1>
-    <p>App desplegada automáticamente por el pipeline de Gitea Actions.</p>
+    <p>App desplegada .</p>
     <p>Versión (build): <b>${VERSION}</b></p>
     <p>Probar la API: <a href="/sumar?a=2&b=3">/sumar?a=2&b=3</a></p>`);
 });
