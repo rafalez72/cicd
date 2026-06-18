@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
 
-# para que pueda ver donde fall.
+# para que pueda ver dond e fall.
 permissions:
   contents: read
   actions: read
